@@ -34,8 +34,6 @@
 #ifndef __ARCH_CC_H__
 #define __ARCH_CC_H__
 
-#include "c_types.h"
-
 #define EFAULT 14
 
 #define LWIP_PROVIDE_ERRNO

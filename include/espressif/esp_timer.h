@@ -6,16 +6,18 @@
 #ifndef __ESP_TIMER_H__
 #define __ESP_TIMER_H__
 
+#include <stdint.h>
+
 /* timer related */
 typedef void os_timer_func_t(void *timer_arg);
 
 typedef struct _os_timer_t {
 	struct _os_timer_t *timer_next;
     void               *freerots_handle;
-    uint32             timer_expire;
-    uint32             timer_period;
+    uint32_t             timer_expire;
+    uint32_t             timer_period;
     os_timer_func_t    *timer_func;
-    bool               timer_repeat_flag;
+    uint8_t               timer_repeat_flag;
     void               *timer_arg;
 } os_timer_t;
 

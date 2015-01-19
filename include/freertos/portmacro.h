@@ -70,8 +70,6 @@
 extern "C" {
 #endif
 
-#include "esp_common.h"
-
 #include    <xtensa/xtruntime.h>
 #include    "xtensa_rtos.h"
 
@@ -108,12 +106,11 @@ typedef unsigned int INT32U;
 /* Scheduler utilities. */
 extern void PendSV(char req);
 extern char ClosedLv1Isr;
-//#define portYIELD()	vPortYield()
+    //#define portYIELD()	vPortYield()
 #define portYIELD()	PendSV(1)
 
-
-//#define portEND_SWITCHING_ISR( xSwitchRequired ) \
-//	if(xSwitchRequired) PendSV(1)
+/* #define portEND_SWITCHING_ISR( xSwitchRequired ) \ */
+/* 	if(xSwitchRequired) PendSV(1) */
 
 #define HDL_MAC_SIG_IN_LV1_ISR() PendSV(2)
 /*-----------------------------------------------------------*/
@@ -139,10 +136,10 @@ extern unsigned cpu_sr;
 #define  portENABLE_INTERRUPTS() __asm__ volatile ("wsr %0, ps" :: "a" (cpu_sr) : "memory")
 #endif
 //DYC_ISR_DBG
-void ICACHE_FLASH_ATTR vPortEnterCritical1( void );
-void ICACHE_FLASH_ATTR vPortExitCritical1( void );
-#define  portSET_INTERRUPT_MASK_FROM_ISR()		vPortEnterCritical1()
-#define  portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	vPortExitCritical1()
+void vPortEnterCritical1( void );
+void vPortExitCritical1( void );
+#define portSET_INTERRUPT_MASK_FROM_ISR() vPortEnterCritical1()
+#define portCLEAR_INTERRUPT_MASK_FROM_ISR(x) vPortExitCritical1()
 
 //#define  portDISABLE_INTERRUPTS()   ets_intr_lock()
 //#define  portENABLE_INTERRUPTS()    ets_intr_unlock()
@@ -150,8 +147,8 @@ void ICACHE_FLASH_ATTR vPortExitCritical1( void );
 //#define  portDISABLE_INTERRUPTS()
 //#define  portENABLE_INTERRUPTS()
 
-#define portENTER_CRITICAL()                vPortEnterCritical()
-#define portEXIT_CRITICAL()                 vPortExitCritical()
+#define portENTER_CRITICAL() vPortEnterCritical()
+#define portEXIT_CRITICAL() vPortExitCritical()
 
 /* Task utilities. */
 #define portEND_SWITCHING_ISR( xSwitchRequired ) 	\
@@ -179,20 +176,20 @@ not necessary for to use this port.  They are defined so the common demo files
 (which build with all the ports) will build. */
 #define portTASK_FUNCTION_PROTO( vFunction, pvParameters ) void vFunction( void *pvParameters )
 #define portTASK_FUNCTION( vFunction, pvParameters ) void vFunction( void *pvParameters )
-/*-----------------------------------------------------------*/
+    /*-----------------------------------------------------------*/
 
-void        _xt_user_exit           (void);
-void        _xt_tick_timer_init   (void);
-void        _xt_isr_unmask       (uint32 unmask);
-void        _xt_isr_mask       (uint32 mask);
-uint32		_xt_read_ints (void);
-void		_xt_clear_ints(uint32 mask);
+    void _xt_user_exit (void);
+    void _xt_tick_timer_init (void);
+    void _xt_isr_unmask (int unmask);
+    void _xt_isr_mask (int mask);
+    int _xt_read_ints (void);
+    void _xt_clear_ints(int mask);
 
 
-/* interrupt related */
-typedef void (* _xt_isr)(void);
+    /* interrupt related */
+    typedef void (* _xt_isr)(void);
 
-void        _xt_isr_attach          (uint8 i, _xt_isr func);
+    void _xt_isr_attach (int i, _xt_isr func);
 
 
 

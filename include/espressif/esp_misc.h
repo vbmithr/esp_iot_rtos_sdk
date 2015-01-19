@@ -6,7 +6,8 @@
 #ifndef __ESP_MISC_H__
 #define __ESP_MISC_H__
 
-#include "lwip/ip_addr.h"
+#include <stdint.h>
+#include <lwip/ip_addr.h>
 
 #define MAC2STR(a) (a)[0], (a)[1], (a)[2], (a)[3], (a)[4], (a)[5]
 #define MACSTR "%02x:%02x:%02x:%02x:%02x:%02x"
@@ -18,7 +19,7 @@
 
 #define IPSTR "%d.%d.%d.%d"
 
-void os_delay_us(uint16 us);
+void os_delay_us(uint16_t us);
 
 void os_install_putc1(void (*p)(char c));
 void os_putc(char c);

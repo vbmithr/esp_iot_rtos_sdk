@@ -6,22 +6,23 @@
 #ifndef __ESP_WIFI_H__
 #define __ESP_WIFI_H__
 
-enum {
-	NULL_MODE = 0,
-	STATION_MODE,
-	SOFTAP_MODE,
-	STATIONAP_MODE,
-	MAX_MODE
-};
+#include <lwip/ip4_addr.h>
 
-uint8 wifi_get_opmode(void);
-bool wifi_set_opmode(uint8 opmode);
+typedef enum opmode {
+    NULL_MODE = 0,
+    STATION_MODE,
+    SOFTAP_MODE,
+    STATIONAP_MODE,
+    MAX_MODE
+} opmode_t;
 
-enum {
-	STATION_IF = 0,
-	SOFTAP_IF,
-	MAX_IF
-};
+opmode_t wifi_get_opmode(void);
+int wifi_set_opmode(opmode_t opmode);
+
+typedef enum iface_idx {
+    STATION_IF = 0,
+    SOFTAP_IF
+} iface_idx_t;
 
 struct ip_info {
     struct ip_addr ip;
@@ -29,29 +30,29 @@ struct ip_info {
     struct ip_addr gw;
 };
 
-bool wifi_get_ip_info(uint8 if_index, struct ip_info *info);
-bool wifi_set_ip_info(uint8 if_index, struct ip_info *info);
-bool wifi_get_macaddr(uint8 if_index, uint8 *macaddr);
-bool wifi_set_macaddr(uint8 if_index, uint8 *macaddr);
+int wifi_get_ip_info(iface_idx_t idx, struct ip_info *info);
+int wifi_set_ip_info(iface_idx_t idx, struct ip_info *info);
+int wifi_get_macaddr(iface_idx_t idx, char *macaddr);
+int wifi_set_macaddr(iface_idx_t, char *macaddr);
 
-uint8 wifi_get_channel(void);
-bool wifi_set_channel(uint8 channel);
+int wifi_get_channel(void);
+int wifi_set_channel(int channel);
 
-void wifi_status_led_install(uint8 gpio_id, uint32 gpio_name, uint8 gpio_func);
+int wifi_status_led_install(int gpio_id, int gpio_name, int gpio_func);
 
-void wifi_promiscuous_enable(uint8 promiscuous);
+int wifi_promiscuous_enable(int promiscuous);
 
-typedef void (* wifi_promiscuous_cb_t)(uint8 *buf, uint16 len);
+typedef void (* wifi_promiscuous_cb_t)(char *buf, int len);
 
 void wifi_set_promiscuous_rx_cb(wifi_promiscuous_cb_t cb);
 
-enum phy_mode {
-	PHY_MODE_11B	= 1,
-	PHY_MODE_11G	= 2,
-	PHY_MODE_11N    = 3
-};
+typedef enum phy_mode {
+    PHY_MODE_11B = 1,
+    PHY_MODE_11G,
+    PHY_MODE_11N
+} phy_mode_t;
 
-enum phy_mode wifi_get_phy_mode(void);
-bool wifi_set_phy_mode(enum phy_mode mode);
+phy_mode_t wifi_get_phy_mode(void);
+int wifi_set_phy_mode(phy_mode_t mode);
 
 #endif

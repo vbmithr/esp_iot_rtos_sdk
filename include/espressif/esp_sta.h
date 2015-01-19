@@ -6,45 +6,55 @@
 #ifndef __ESP_STA_H__
 #define __ESP_STA_H__
 
+#include <stdint.h>
+
 #include "queue.h"
 
 struct station_config {
-    uint8 ssid[32];
-    uint8 password[64];
-    uint8 bssid_set;
-    uint8 bssid[6];
+    char ssid[32];
+    char password[64];
+    uint8_t bssid_set;
+    char bssid[6];
 };
 
-bool wifi_station_get_config(struct station_config *config);
-bool wifi_station_set_config(struct station_config *config);
+int wifi_station_get_config(struct station_config *config);
+int wifi_station_set_config(struct station_config *config);
 
-bool wifi_station_connect(void);
-bool wifi_station_disconnect(void);
+int wifi_station_connect(void);
+int wifi_station_disconnect(void);
 
 struct scan_config {
-    uint8 *ssid;
-    uint8 *bssid;
-    uint8 channel;
-    uint8 show_hidden;
+    char *ssid;
+    char *bssid;
+    uint8_t channel;
+    uint8_t show_hidden;
 };
 
 struct bss_info {
     STAILQ_ENTRY(bss_info)     next;
 
-    uint8 bssid[6];
-    uint8 ssid[32];
-    uint8 channel;
-    sint8 rssi;
-    uint8 authmode;
-    uint8 is_hidden;
+    char bssid[6];
+    char ssid[32];
+    uint8_t channel;
+    int8_t rssi;
+    uint8_t authmode;
+    uint8_t is_hidden;
 };
 
-typedef void (* scan_done_cb_t)(void *arg, STATUS status);
+typedef enum {
+    STATUS_OK = 0,
+    STATUS_FAIL,
+    STATUS_PENDING,
+    STATUS_BUSY,
+    STATUS_CANCEL,
+} status_t;
 
-bool wifi_station_scan(struct scan_config *config, scan_done_cb_t cb);
+typedef void (* scan_done_cb_t)(void *arg, status_t status);
 
-uint8 wifi_station_get_auto_connect(void);
-bool wifi_station_set_auto_connect(uint8 set);
+int wifi_station_scan(struct scan_config *config, scan_done_cb_t cb);
+
+int wifi_station_get_auto_connect(void);
+int wifi_station_set_auto_connect(int set);
 
 enum {
     STATION_IDLE = 0,
@@ -55,6 +65,6 @@ enum {
     STATION_GOT_IP
 };
 
-uint8 wifi_station_get_connect_status(void);
+int wifi_station_get_connect_status(void);
 
 #endif

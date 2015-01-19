@@ -6,8 +6,8 @@
 #ifndef __ESP_COMMON_H__
 #define __ESP_COMMON_H__
 
-#include "c_types.h"
-#include "esp_libc.h"
+/* #include "c_types.h" */
+/* #include "esp_libc.h" */
 #include "esp_misc.h"
 #include "esp_softap.h"
 #include "esp_sta.h"

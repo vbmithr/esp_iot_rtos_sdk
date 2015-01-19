@@ -8,16 +8,22 @@
  * Modification history:
  *     2014/12/1, v1.0 create this file.
 *******************************************************************************/
-#include "esp_common.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include <espressif/esp_common.h>
 
-#include "lwip/sockets.h"
-#include "lwip/dns.h"
-#include "lwip/netdb.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
-#include "udhcp/dhcpd.h"
+#include <lwip/sockets.h>
+#include <lwip/dns.h>
+#include <lwip/netdb.h>
+
+#include <udhcp/dhcpd.h>
+
+#include "uart.h"
 
 #define server_ip "192.168.101.142"
 #define server_port 9669
@@ -28,11 +34,8 @@ void task2(void *pvParameters)
 
     while (1) {
         int recbytes;
-        int sin_size;
-        int str_len;
         int sta_socket;
 
-        struct sockaddr_in local_ip;
         struct sockaddr_in remote_ip;
 
         sta_socket = socket(PF_INET, SOCK_STREAM, 0);
@@ -44,7 +47,7 @@ void task2(void *pvParameters)
         }
 
         printf("C > socket ok!\n");
-        bzero(&remote_ip, sizeof(struct sockaddr_in));
+        memset(&remote_ip, 0, sizeof(struct sockaddr_in));
         remote_ip.sin_family = AF_INET;
         remote_ip.sin_addr.s_addr = inet_addr(server_ip);
         remote_ip.sin_port = htons(server_port);
@@ -57,7 +60,7 @@ void task2(void *pvParameters)
         }
 
         printf("C > connect ok!\n");
-        char *pbuf = (char *)zalloc(1024);
+        char *pbuf = calloc(1024, 1);
         sprintf(pbuf, "%s\n", "client_send info");
 
         if (write(sta_socket, pbuf, strlen(pbuf) + 1) < 0) {
@@ -67,7 +70,7 @@ void task2(void *pvParameters)
         printf("C > send success\n");
         free(pbuf);
 
-        char *recv_buf = (char *)zalloc(128);
+        char *recv_buf = calloc(128,1);
         while ((recbytes = read(sta_socket , recv_buf, 128)) > 0) {
         	recv_buf[recbytes] = 0;
             printf("C > read data success %d!\nC > %s\n", recbytes, recv_buf);
@@ -127,7 +130,7 @@ void task3(void *pvParameters)
 
                 printf("S > Client from %s %d\n", inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 
-                char *recv_buf = (char *)zalloc(128);
+                char *recv_buf = calloc(128, 1);
                 while ((recbytes = read(client_sock , recv_buf, 128)) > 0) {
                 	recv_buf[recbytes] = 0;
                     printf("S > read data success %d!\nS > %s\n", recbytes, recv_buf);
@@ -148,56 +151,52 @@ void task3(void *pvParameters)
  * Description  : entry of user application, init user function here
  * Parameters   : none
  * Returns      : none
-*******************************************************************************/
+ *******************************************************************************/
 void ICACHE_FLASH_ATTR
 user_init(void)
 {
+    /* Initialize uart to have a working printf. */
+    uart_init_new();
+
     printf("SDK version:%d.%d.%d\n",
-    		SDK_VERSION_MAJOR,
-    		SDK_VERSION_MINOR,
-    		SDK_VERSION_REVISION);
+	   SDK_VERSION_MAJOR,
+	   SDK_VERSION_MINOR,
+	   SDK_VERSION_REVISION);
 
     /* need to set opmode before you set config */
     wifi_set_opmode(STATIONAP_MODE);
 
-    {
-        struct station_config *config = (struct station_config *)zalloc(sizeof(struct station_config));
-        sprintf(config->ssid, "CVR100W_T");
-        sprintf(config->password, "justfortest");
+    struct station_config *config = calloc(1, sizeof(struct station_config));
+    sprintf(config->ssid, "CVR100W_T");
+    sprintf(config->password, "justfortest");
 
-        /* need to sure that you are in station mode first,
-         * otherwise it will be failed. */
-        wifi_station_set_config(config);
-        free(config);
-    }
-    
-    {
-        struct ip_info ipinfo;
-    	    
-        ipinfo.gw.addr = ipaddr_addr("192.168.145.253");
-    	ipinfo.ip.addr = ipaddr_addr("192.168.145.253");
-    	ipinfo.netmask.addr = ipaddr_addr("255.255.255.0");
-    	
-    	wifi_set_ip_info(SOFTAP_IF, &ipinfo);
-    }
+    /* need to sure that you are in station mode first,
+     * otherwise it will be failed. */
+    wifi_station_set_config(config);
+    free(config);
+    struct ip_info ipinfo;
 
-    {
-        struct dhcp_info *pdhcp_info = NULL;
-    
-        pdhcp_info = (struct dhcp_info *)zalloc(sizeof(struct dhcp_info));
-        pdhcp_info->start_ip = ipaddr_addr("192.168.145.100");
-        pdhcp_info->end_ip = ipaddr_addr("192.168.145.110");    // don't set the range too large, because it will cost memory.
-        pdhcp_info->max_leases = 10;
-        pdhcp_info->auto_time = 60;
-        pdhcp_info->decline_time = 60;
-        pdhcp_info->conflict_time = 60;
-        pdhcp_info->offer_time = 60;
-        pdhcp_info->min_lease_sec = 60;
-        dhcp_set_info(pdhcp_info);
-        free(pdhcp_info);
-    }
-    
-    udhcpd_start();
+    ipinfo.gw.addr = ipaddr_addr("192.168.145.253");
+    ipinfo.ip.addr = ipaddr_addr("192.168.145.253");
+    ipinfo.netmask.addr = ipaddr_addr("255.255.255.0");
+
+    wifi_set_ip_info(SOFTAP_IF, &ipinfo);
+
+    /* struct dhcp_info *pdhcp_info = NULL; */
+
+    /* pdhcp_info = calloc(1, sizeof(struct dhcp_info)); */
+    /* pdhcp_info->start_ip = ipaddr_addr("192.168.145.100"); */
+    /* pdhcp_info->end_ip = ipaddr_addr("192.168.145.110");    // don't set the range too large, because it will cost memory. */
+    /* pdhcp_info->max_leases = 10; */
+    /* pdhcp_info->auto_time = 60; */
+    /* pdhcp_info->decline_time = 60; */
+    /* pdhcp_info->conflict_time = 60; */
+    /* pdhcp_info->offer_time = 60; */
+    /* pdhcp_info->min_lease_sec = 60; */
+    /* dhcp_set_info(pdhcp_info); */
+    /* free(pdhcp_info); */
+
+    /* udhcpd_start(); */
 
     xTaskCreate(task2, "tsk2", 256, NULL, 2, NULL);
     xTaskCreate(task3, "tsk3", 256, NULL, 2, NULL);

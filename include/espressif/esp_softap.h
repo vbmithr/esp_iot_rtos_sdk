@@ -15,16 +15,16 @@ typedef enum _auth_mode {
 } AUTH_MODE;
 
 struct softap_config {
-    uint8 ssid[32];
-    uint8 password[64];
-    uint8 ssid_len;
-    uint8 channel;
-    uint8 authmode;
-    uint8 ssid_hidden;
-    uint8 max_connection;
+    char ssid[32];
+    char password[64];
+    uint8_t ssid_len;
+    uint8_t channel;
+    uint8_t authmode;
+    uint8_t ssid_hidden;
+    uint8_t max_connection;
 };
 
-bool wifi_softap_get_config(struct softap_config *config);
-bool wifi_softap_set_config(struct softap_config *config);
+int wifi_softap_get_config(struct softap_config *config);
+int wifi_softap_set_config(struct softap_config *config);
 
 #endif
